@@ -242,8 +242,9 @@ route.post("/myMessageLawyer", authL, async (req, res) => {
     res.status(401).json({ error: "Client Not Available" });
   }
 });
-route.post("/myMessageClient", async (req, res) => {
-  const { emailS, emailR, message } = req.body;
+route.post("/myMessageClient", authC, async (req, res) => {
+  const { emailR, message } = req.body;
+  const emailS = req.myclient.email;
   const me = await Lawyer.findOne({ email: emailR });
   if (me) {
     const m = await me.addMessage(emailS, message);
@@ -488,6 +489,39 @@ route.get("/legaldraftingLawyerOffer", async (req, res) => {
     }
   } catch (err) {
     return res.status(404).json({ error: err });
+  }
+});
+
+//send payment
+route.post("/sendEscrow", authC, async (req, res) => {
+  const { emailR, payment } = req.body;
+  const emailS = req.myclient.email;
+  const adminres = await Admin.findOne({
+    email: process.env.EMAILA,
+  });
+  const lawyeron = await Lawyer.findOne({ email: emailR });
+  if (payment >= 0 && lawyeron) {
+    const resp = await adminres.escrowpayment(emailS, emailR, payment);
+    if (resp) {
+      return res.status(201).json({ message: "Send to Escrow" });
+    } else {
+      return res.status(501).json({ error: "Internal Error" });
+    }
+  } else {
+    return res.status(422).json({ error: "Finding Error" });
+  }
+});
+
+//send to lawyer
+route.post("/paymentLawyer", authC, async (req, res) => {
+  try {
+    const emailR = req.body;
+    const emailS = req.myclient.email;
+    const adminSir = await Admin.findOne({ email: process.env.EMAILA });
+    console.log(adminSir.escrow);
+    return res.status(201).json({ message: "Success" });
+  } catch (err) {
+    console.log(err);
   }
 });
 

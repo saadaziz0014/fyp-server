@@ -39,6 +39,7 @@ const lawyerSchema = new mongoose.Schema({
       },
       message: {
         type: String,
+        required: true,
       },
     },
   ],
@@ -66,6 +67,10 @@ const lawyerSchema = new mongoose.Schema({
       },
     },
   ],
+  payment: {
+    type: Number,
+    required: true,
+  },
   verify: {
     type: Boolean,
     default: false,
@@ -114,6 +119,19 @@ lawyerSchema.methods.addVerifyability = async function () {
     return "Success";
   } catch (err) {
     return err;
+  }
+};
+
+lawyerSchema.methods.addPayment = async function (pay) {
+  try {
+    if (pay > 0) {
+      this.payment = this.payment + pay;
+      await this.save();
+      return 201;
+    }
+    return 422;
+  } catch (err) {
+    console.log(err);
   }
 };
 

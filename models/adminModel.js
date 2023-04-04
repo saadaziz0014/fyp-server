@@ -20,6 +20,22 @@ const adminSchema = new mongoose.Schema({
       },
     },
   ],
+  escrow: [
+    {
+      emailc: {
+        type: String,
+        required: true,
+      },
+      emaill: {
+        type: String,
+        required: true,
+      },
+      payment: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
 });
 
 adminSchema.pre("save", async function (next) {
@@ -35,6 +51,18 @@ adminSchema.methods.generateAuthToken = async function () {
     this.tokens = this.tokens.concat({ token: tokenAdmin });
     await this.save();
     return tokenAdmin;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+adminSchema.methods.escrowpayment = async function (emailc, emaill, payment) {
+  try {
+    if (payment >= 0) {
+      this.escrow = this.escrow.concat({ emailc, emaill, payment });
+      await this.save();
+      return 201;
+    }
   } catch (err) {
     console.log(err);
   }
