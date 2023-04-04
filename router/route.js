@@ -518,7 +518,16 @@ route.post("/paymentLawyer", authC, async (req, res) => {
     const emailR = req.body;
     const emailS = req.myclient.email;
     const adminSir = await Admin.findOne({ email: process.env.EMAILA });
-    console.log(adminSir.escrow);
+    if(adminSir.escrow.emaill == emailR && adminSir.escrow.emailc == emailS){
+      const pay = adminSir.escrow.payment;
+      const lawmr = await Lawyer.findOne({email:emailR});
+      if(lawmr){
+        const resp = await lawmr.addPayment(pay);
+        if(resp){
+          
+        }
+      }
+    }
     return res.status(201).json({ message: "Success" });
   } catch (err) {
     console.log(err);
