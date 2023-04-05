@@ -515,20 +515,39 @@ route.post("/sendEscrow", authC, async (req, res) => {
 //send to lawyer
 route.post("/paymentLawyer", authC, async (req, res) => {
   try {
-    const emailR = req.body;
+    let pay = 0;
+    let myval = 0;
+    const emailR = req.body.email;
     const emailS = req.myclient.email;
     const adminSir = await Admin.findOne({ email: process.env.EMAILA });
-    if(adminSir.escrow.emaill == emailR && adminSir.escrow.emailc == emailS){
-      const pay = adminSir.escrow.payment;
-      const lawmr = await Lawyer.findOne({email:emailR});
-      if(lawmr){
-        const resp = await lawmr.addPayment(pay);
-        if(resp){
-          
-        }
+    adminSir.escrow.map((elem, index) => {
+      if (elem.emaill == emailR && elem.emailc == emailS) {
+        pay = elem.payment;
+        //console.log(pay);
+        myval = 2;
+        return index;
       }
+    });
+    if (myval == 2) {
+      const mylaw = await Lawyer.findOne({ email: emailR });
+      const responce = await mylaw.addPayment(pay);
+      const respo = await Admin.findOneAndUpdate(
+        { email: process.env.EMAILA },
+        {
+          $pull: {
+            escrow: { emailc: emailS, emaill: emailR },
+          },
+        }
+      );
+      if (respo && responce) {
+        //console.log(respo);
+        return res.status(201).json({ message: "Success" });
+      }
+    } else {
+      return res
+        .status(422)
+        .json({ error: "Either email not correct or not in payment" });
     }
-    return res.status(201).json({ message: "Success" });
   } catch (err) {
     console.log(err);
   }

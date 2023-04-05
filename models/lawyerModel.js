@@ -70,6 +70,7 @@ const lawyerSchema = new mongoose.Schema({
   payment: {
     type: Number,
     required: true,
+    default: 0,
   },
   verify: {
     type: Boolean,
