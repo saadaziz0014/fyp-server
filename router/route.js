@@ -10,6 +10,8 @@ const fs = require("fs");
 const authA = require("../middleware/authAdmin");
 const authC = require("../middleware/authClient");
 const authL = require("../middleware/authLawyer");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 let filename;
 
@@ -551,6 +553,36 @@ route.post("/paymentLawyer", authC, async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+const transporter = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "2eb2b60457319d",
+    pass: "9e06914f27fb08",
+  },
+});
+
+route.post("/reset-password-lawyer", async (req, res) => {
+  const mailOptions = {
+    from: "2eb2b60457319d", // Sender email address
+    to: "saadaziz0014@gmail.com", // Recipient email address
+    subject: "Password Reset Request", // Email subject
+    text: `You have requested to reset your password. Please click on the following link to reset your password`, // Email body
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending email:", error);
+      // Handle error
+    } else {
+      console.log("Email sent:", info.response);
+      // Handle success
+    }
+  });
+
+  res.status(201).json({ message: "Send" });
 });
 
 module.exports = route;
