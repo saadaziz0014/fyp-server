@@ -11,7 +11,8 @@ const authA = require("../middleware/authAdmin");
 const authC = require("../middleware/authClient");
 const authL = require("../middleware/authLawyer");
 const nodemailer = require("nodemailer");
-const crypto = require("crypto");
+const Otp = require("../models/otpModel");
+const { log } = require("console");
 
 let filename;
 
@@ -119,6 +120,7 @@ route.post("/lawyersignup", upload.single("file"), async (req, res) => {
 //logins
 route.post("/clientlogin", async (req, res) => {
   try {
+    console.log("In route");
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(422).json({ error: "Fill all Inputs" });
@@ -556,18 +558,18 @@ route.post("/paymentLawyer", authC, async (req, res) => {
 });
 
 const transporter = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: "smtp.gmail.com",
+  port: 587,
   auth: {
-    user: "2eb2b60457319d",
-    pass: "9e06914f27fb08",
+    user: "saadaziz0014@gmail.com",
+    pass: "zbyedcnqiravhorh",
   },
 });
 
 route.post("/reset-password-lawyer", async (req, res) => {
   const mailOptions = {
-    from: "2eb2b60457319d", // Sender email address
-    to: "saadaziz0014@gmail.com", // Recipient email address
+    from: "saadaziz0014@gmail.com", // Sender email address
+    to: "fasihkhan754@gmail.com", // Recipient email address
     subject: "Password Reset Request", // Email subject
     text: `You have requested to reset your password. Please click on the following link to reset your password`, // Email body
   };
@@ -583,6 +585,16 @@ route.post("/reset-password-lawyer", async (req, res) => {
   });
 
   res.status(201).json({ message: "Send" });
+});
+
+//submit proposal
+route.post("/submitproposal", authL, async (req, res) => {
+  try {
+    const emaill = req.mylawyer.email;
+    const message = req.body.message;
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 module.exports = route;

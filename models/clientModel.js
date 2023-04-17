@@ -50,6 +50,10 @@ const clientSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      proposal: {
+        type: String,
+        required: true,
+      },
     },
   ],
 });
