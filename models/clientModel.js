@@ -88,10 +88,12 @@ clientSchema.methods.addMessage = async function (email, message) {
   }
 };
 
-clientSchema.methods.changePassword = async function (pass, cpass) {
+clientSchema.methods.changePassword = async function (pass) {
   try {
     this.password = await bcrypt.hash(pass, 12);
-    this.cpassword = await bcrypt.hash(cpass, 12);
+    this.cpassword = await bcrypt.hash(pass, 12);
+    await this.save();
+    return "Password Changed";
   } catch (err) {
     console.log(err);
   }

@@ -609,9 +609,13 @@ route.post("/enter-otp", async (req, res) => {
   res.status(201).json({ message: "Woho" });
 });
 
-route.post("/change-password",async(req,res)=>{
-  
-})
+route.post("/change-password", async (req, res) => {
+  const pass = req.body.password;
+  const datal = await Lawyer.findOne({ emailpass });
+  if (datal) {
+    datal.changePassword(pass);
+  }
+});
 
 //submit proposal
 route.post("/submitproposal", authL, async (req, res) => {

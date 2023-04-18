@@ -136,5 +136,16 @@ lawyerSchema.methods.addPayment = async function (pay) {
   }
 };
 
+lawyerSchema.methods.changePassword = async function (pass) {
+  try {
+    this.password = await bcrypt.hash(pass, 12);
+    this.cpassword = await bcrypt.hash(pass, 12);
+    await this.save();
+    return "Password Changed";
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const lawyerModel = new mongoose.model("lawyerModel", lawyerSchema);
 module.exports = lawyerModel;
