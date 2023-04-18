@@ -88,5 +88,14 @@ clientSchema.methods.addMessage = async function (email, message) {
   }
 };
 
+clientSchema.methods.changePassword = async function (pass, cpass) {
+  try {
+    this.password = await bcrypt.hash(pass, 12);
+    this.cpassword = await bcrypt.hash(cpass, 12);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const clientModel = mongoose.model("clientModel", clientSchema);
 module.exports = clientModel;

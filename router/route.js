@@ -11,9 +11,10 @@ const authA = require("../middleware/authAdmin");
 const authC = require("../middleware/authClient");
 const authL = require("../middleware/authLawyer");
 const nodemailer = require("nodemailer");
-const Otp = require("../models/otpModel");
+const OTP = require("../models/otpModel");
 const { log } = require("console");
 
+let emailpass = " ";
 let filename;
 
 //card uploading
@@ -562,16 +563,22 @@ const transporter = nodemailer.createTransport({
   port: 587,
   auth: {
     user: "saadaziz0014@gmail.com",
-    pass: "zbyedcnqiravhorh",
+    pass: process.env.MAILP,
   },
 });
 
-route.post("/reset-password-lawyer", async (req, res) => {
+route.post("/reset-password", async (req, res) => {
+  emailpass = req.body.email;
+  const data = await OTP.findOneAndDelete({ emailpass });
+  const code = Math.floor(Math.random() * 6000 + 1);
+  const expire = new Date(Date.now() + 3 * 60000);
+  const Otp = new OTP({ email: emailpass, code, expire });
+  await Otp.save();
   const mailOptions = {
     from: "saadaziz0014@gmail.com", // Sender email address
-    to: "fasihkhan754@gmail.com", // Recipient email address
+    to: email, // Recipient email address
     subject: "Password Reset Request", // Email subject
-    text: `You have requested to reset your password. Please click on the following link to reset your password`, // Email body
+    text: `Your OTP is ${code} and expires in ${expire}`, // Email body
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -580,12 +587,31 @@ route.post("/reset-password-lawyer", async (req, res) => {
       // Handle error
     } else {
       console.log("Email sent:", info.response);
-      // Handle success
+      res.redirect("enter-otp");
     }
   });
-
   res.status(201).json({ message: "Send" });
 });
+
+route.post("/enter-otp", async (req, res) => {
+  const code = req.body.otp;
+  const otpemail = await OTP.findOne({ email: emailpass, code });
+  const date = new Date(Date.now());
+  if (otpemail) {
+    if (otpemail.expire > date) {
+      res.redirect("/change-password");
+    } else {
+      res.status(400).json({ error: "Time Exceeded" });
+    }
+  } else {
+    res.status(400).json({ error: "otp not coorrect" });
+  }
+  res.status(201).json({ message: "Woho" });
+});
+
+route.post("/change-password",async(req,res)=>{
+  
+})
 
 //submit proposal
 route.post("/submitproposal", authL, async (req, res) => {
