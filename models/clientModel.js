@@ -44,18 +44,6 @@ const clientSchema = new mongoose.Schema({
       },
     },
   ],
-  cases: [
-    {
-      case: {
-        type: String,
-        required: true,
-      },
-      proposal: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
 });
 
 //hash password

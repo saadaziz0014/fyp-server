@@ -51,22 +51,6 @@ const lawyerSchema = new mongoose.Schema({
       },
     },
   ],
-  offersC: [
-    {
-      offer: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
-  offersA: [
-    {
-      offer: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
   payment: {
     type: Number,
     required: true,
@@ -100,16 +84,6 @@ lawyerSchema.methods.generateAuthToken = async function () {
     return tokenLawyer;
   } catch (err) {
     console.log(err);
-  }
-};
-
-lawyerSchema.methods.addMessage = async function (email, message) {
-  try {
-    this.messages = this.messages.concat({ email, message });
-    await this.save();
-    return message;
-  } catch (err) {
-    return err;
   }
 };
 

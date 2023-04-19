@@ -12,6 +12,8 @@ const authC = require("../middleware/authClient");
 const authL = require("../middleware/authLawyer");
 const nodemailer = require("nodemailer");
 const OTP = require("../models/otpModel");
+const Offer = require("../models/offerModel");
+const Case = require("../models/caseModel");
 const { log } = require("console");
 
 let emailpass = " ";
@@ -193,9 +195,6 @@ route.post("/adminlogin", async (req, res) => {
       const matching = await bcrypt.compare(password, responce.password);
       if (matching) {
         const tokenAdmin = await responce.generateAuthToken();
-        //console.log(tokenAdmin);
-
-        //storing in cookies
 
         res.cookie("adminlogintoken", tokenAdmin, {
           expires: new Date(Date.now() + 8 * 60000),
@@ -247,12 +246,12 @@ route.post("/myMessageLawyer", authL, async (req, res) => {
     res.status(401).json({ error: "Client Not Available" });
   }
 });
-route.post("/myMessageClient", authC, async (req, res) => {
+route.post("/offer-client", authC, async (req, res) => {
   const { emailR, message } = req.body;
   const emailS = req.myclient.email;
-  const me = await Lawyer.findOne({ email: emailR });
+  const me = await Offer.findOne({ email: emailR });
   if (me) {
-    const m = await me.addMessage(emailS, message);
+    const m = await me.message(emailS, message);
     if (m) {
       res.status(200).json({ message: "Sent" });
     }
@@ -358,7 +357,7 @@ route.get("/divorceLawyerOffer", async (req, res) => {
     const data = await Lawyer.find();
     if (data) {
       data.map((val) => {
-        if (val.specialities.speciality == "Divorce/Khula") {
+        if (val.specialities.speciality === "Divorce/Khula") {
           array.push(val);
         }
         res.send(array);
@@ -568,52 +567,71 @@ const transporter = nodemailer.createTransport({
 });
 
 route.post("/reset-password", async (req, res) => {
-  emailpass = req.body.email;
-  const data = await OTP.findOneAndDelete({ emailpass });
-  const code = Math.floor(Math.random() * 6000 + 1);
-  const expire = new Date(Date.now() + 3 * 60000);
-  const Otp = new OTP({ email: emailpass, code, expire });
-  await Otp.save();
-  const mailOptions = {
-    from: "saadaziz0014@gmail.com", // Sender email address
-    to: email, // Recipient email address
-    subject: "Password Reset Request", // Email subject
-    text: `Your OTP is ${code} and expires in ${expire}`, // Email body
-  };
+  try {
+    emailpass = req.body.email;
+    const data = await OTP.findOneAndDelete({ email: emailpass });
+    const code = Math.floor(Math.random() * 6000 + 1);
+    const expire = new Date(Date.now() + 3 * 60000);
+    const Otp = new OTP({ email: emailpass, code, expire });
+    await Otp.save();
+    const mailOptions = {
+      from: "saadaziz0014@gmail.com", // Sender email address
+      to: emailpass, // Recipient email address
+      subject: "Password Reset Request", // Email subject
+      text: `Your OTP is ${code} and expires in ${expire}`, // Email body
+    };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Error sending email:", error);
-      // Handle error
-    } else {
-      console.log("Email sent:", info.response);
-      res.redirect("enter-otp");
-    }
-  });
-  res.status(201).json({ message: "Send" });
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        // Handle error
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+    res.status(201).json({ message: "Send" });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 route.post("/enter-otp", async (req, res) => {
-  const code = req.body.otp;
-  const otpemail = await OTP.findOne({ email: emailpass, code });
-  const date = new Date(Date.now());
-  if (otpemail) {
-    if (otpemail.expire > date) {
-      res.redirect("/change-password");
+  try {
+    const code = req.body.otp;
+    const otpemail = await OTP.findOne({ email: emailpass, code });
+    console.log(emailpass);
+    const date = new Date(Date.now());
+    if (otpemail) {
+      if (otpemail.expire > date) {
+        res.status(201).json({ message: "Success" });
+      } else {
+        res.status(400).json({ error: "Time Exceeded" });
+      }
     } else {
-      res.status(400).json({ error: "Time Exceeded" });
+      res.status(400).json({ error: "otp not coorrect" });
     }
-  } else {
-    res.status(400).json({ error: "otp not coorrect" });
+  } catch (err) {
+    console.log(err);
   }
-  res.status(201).json({ message: "Woho" });
 });
 
 route.post("/change-password", async (req, res) => {
-  const pass = req.body.password;
-  const datal = await Lawyer.findOne({ emailpass });
-  if (datal) {
-    datal.changePassword(pass);
+  try {
+    const pass = req.body.password;
+    console.log(emailpass);
+    const datal = await Lawyer.findOne({ email: emailpass });
+    if (datal) {
+      const mess = await datal.changePassword(pass);
+    } else {
+      const datac = await Client.findOne({ email: emailpass });
+      if (datac) {
+        const mess = await datac.changePassword(pass);
+      } else {
+        res.status(400).json({ error: "Not Found" });
+      }
+    }
+  } catch (err) {
+    console.log(err);
   }
 });
 
